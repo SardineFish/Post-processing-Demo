@@ -5,6 +5,7 @@ Shader "MyShader/PBR/GGX"{
 		_Normal ("Normal Textire", 2D) = "bump"{}
 		_Specular("Specular", Color) = (1, 1, 1, 1)
 		_Roughness("Roughness", Range(0,1)) = 0.5
+		_F0("F0",Range(0,1)) = 0.02
 	}
 	SubShader{
 		Pass{
@@ -29,6 +30,7 @@ Shader "MyShader/PBR/GGX"{
 			float4 _Specular;
 			float _Gloss;
 			float _Roughness;
+			float _F0;
 
 			struct a2v{
 				float4 vertex: POSITION;
@@ -72,8 +74,8 @@ Shader "MyShader/PBR/GGX"{
 
 			// --------- Specular ---------
 
-			inline float3 schlick(float3 color, float hl){
-				return color + (1 - color) * pow(1 - hl, 5);
+			inline float3 schlick(float f0, float hl){
+				return f0 + (1 - f0) * pow(1 - hl, 5);
 			}
 
 			inline float3 normalDistrGGX(float roughness, float nh){
@@ -87,7 +89,7 @@ Shader "MyShader/PBR/GGX"{
 			}
 
             inline float3 specularGGX(float3 albedo, float roughness, float nh, float nl, float nv, float hl){
-				float3 F = schlick(albedo, hl);
+				float3 F = schlick(_F0, hl);
 				float3 D = normalDistrGGX(roughness, nh);
 				float3 G = smithGGX(roughness, nl) * smithGGX(roughness, nv);
 				return max(0,  F * G * D / 4);
@@ -116,9 +118,10 @@ Shader "MyShader/PBR/GGX"{
 				float hl = saturate(dot(halfDir, lightDir));
 
 
-				float3 diffuseTerm = disney(albedo.rgb, roughness, hl, nl, nv) * PI * _LightColor0.rgb * nl;
+				float3 diffuseTerm = disney(albedo.rgb, roughness, hl, nl, nv) * PI * _LightColor0.rgb * nl + ambient;
 				float3 specularTerm = specularGGX(albedo, roughness, nh, nl, nv, hl) * PI * _LightColor0.rgb * spacularColor * nl;
-				float3 color = diffuseTerm + specularTerm + ambient;// specularTerm + diffuseTerm + ambient;
+				float3 fresnel = 1 - _F0;// (1 - schlick(_F0, hl));
+				float3 color = diffuseTerm * fresnel + specularTerm;// specularTerm + diffuseTerm + ambient;
 				return fixed4(color , 1.0);
 			}
 

@@ -4,7 +4,7 @@ Shader "MyShader/PBR/Oren-Nayar"{
 		_MainTex ("Main Texture", 2D) = "white"{}
 		_Normal ("Normal Textire", 2D) = "bump"{}
 		_Specular("Specular", Color) = (1, 1, 1, 1)
-		_Roughness("Roughness", Range(0,1)) = 0.5
+		_Roughness("Roughness", Range(0,1.5708)) = 0.5
 	}
 	SubShader{
 		Pass{
@@ -63,7 +63,7 @@ Shader "MyShader/PBR/Oren-Nayar"{
 
             inline float3 diffuseOrenNayar(float3 albedo, float sigma, float nl, float nv, float lv){
 				float sigma_2 = pow(sigma, 2);
-				float A = 1 - 0.5 * sigma_2 / (sigma_2 + 0.33);
+				float A = 1 - 0.5 * sigma_2 / (sigma_2 + 0.33) + 0.17 * albedo * sigma_2 / (sigma_2 + 0.13);
 				float B = 0.45 * sigma_2 / (sigma_2 + 0.09);
 				float s = lv - nl * nv;
 				float t = s <= 0

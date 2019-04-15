@@ -53,7 +53,7 @@ Shader "MyShader/Blinn"
 			fixed4 frag(v2f i):SV_Target
 			{
 
-				float3 ambient = UNITY_LIGHTMODEL_AMBIENT;
+				float3 ambient = UNITY_LIGHTMODEL_AMBIENT * _Diffuse;
 
 				float3 worldNormal = normalize(i.normal);
 				float3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
