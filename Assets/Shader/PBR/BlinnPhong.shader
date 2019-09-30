@@ -130,4 +130,5 @@ Shader "MyShader/PBR/Blinn-Phong"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

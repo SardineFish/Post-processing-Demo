@@ -129,4 +129,5 @@ Shader "MyShader/PBR/GGX"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

@@ -105,4 +105,5 @@ Shader "MyShader/PBR/BRDF"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

@@ -111,4 +111,5 @@ Shader "MyShader/PBR/Oren-Nayar"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

@@ -181,4 +181,5 @@ Shader "MyShader/PBR/MERL"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

@@ -69,4 +69,5 @@ Shader "MyShader/SimpleLight"
             ENDCG
         }
     }
+	Fallback "VertexLit"
 }

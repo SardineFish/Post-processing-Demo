@@ -57,4 +57,5 @@
 			ENDCG
 		}
 	}
+	Fallback "VertexLit"
 }

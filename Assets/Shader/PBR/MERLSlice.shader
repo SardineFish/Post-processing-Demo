@@ -59,4 +59,5 @@ Shader "MyShader/PBR/MERL Slice"{
 		}
 
 	}
+	Fallback "VertexLit"
 }

@@ -146,7 +146,7 @@ Shader "MyShader/Expert/MultiLight"{
 
 
 				float3 diffuseTerm = disney(albedo.rgb, roughness, hl, nl, nv) * PI * light * nl + ambient;
-				float3 specularTerm = specularGGX(albedo, roughness, nh, nl, nv, hl) * PI * light * spacularColor * nl + reflection * fresnelFunc(_F0, nv, _Fresnel);
+				float3 specularTerm = specularGGX(albedo, roughness, nh, nl, nv, hl) * PI * light * spacularColor * nl + spacularColor * reflection * fresnelFunc(_F0, nv, _Fresnel);
 				float3 fresnel = 1 - _F0;// (1 - schlick(_F0, hl));
 				float3 color = diffuseTerm * fresnel + specularTerm;// specularTerm + diffuseTerm + ambient;
 				return fixed4(color, albedo.a);
@@ -320,4 +320,5 @@ Shader "MyShader/Expert/MultiLight"{
             ENDCG
         }
 	}
+	Fallback "VertexLit"
 }

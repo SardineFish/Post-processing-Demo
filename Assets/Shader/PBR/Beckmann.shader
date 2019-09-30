@@ -8,7 +8,7 @@ Shader "MyShader/PBR/Beckmann"{
 	}
 	SubShader{
 		Pass{
-			Tags {"LightMode"="ForwardBase"}
+			Tags {"LightMode"="ForwardBase" "RenderType"="Opaque"}
 
 			
 			CGPROGRAM
@@ -135,4 +135,5 @@ Shader "MyShader/PBR/Beckmann"{
 		}
 
 	}
+	Fallback "VertexLit"
 }
