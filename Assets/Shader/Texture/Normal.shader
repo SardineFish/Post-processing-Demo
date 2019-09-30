@@ -61,25 +61,21 @@ Shader "MyShader/Texure/TextureNormal"{
 				return o;
 			}
 
-			fixed4 frag(v2f i):SV_TARGET{
-				float3 albedo = tex2D(_MainTex, i.uv).rgb * _Color.rgb;
-				float3 ambient = UNITY_LIGHTMODEL_AMBIENT.rgb * albedo.rgb;
-				fixed4 packNormal = tex2D(_Normal, i.normalUV);
-				float3 normal = UnpackNormal(packNormal);
-				float3 lightDir = normalize(i.lightDir);
-				float3 viewDir = normalize(i.viewDir);
-
-				// Compute diffuse term
-				float3 diffuse = _LightColor0.rgb*albedo.rgb*max(0, dot(normal, i.lightDir));
-
-				// Get the half direction in world space
-				float3 halfDir = normalize(lightDir + viewDir);
-				// Compute specular term 
-				float3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(normal, halfDir)), _Gloss);
-
-				return fixed4(ambient + diffuse + specular, 1.0);
-			}
-
+fixed4 frag(v2f i):SV_TARGET{
+	float3 albedo = tex2D(_MainTex, i.uv).rgb * _Color.rgb;
+	float3 ambient = UNITY_LIGHTMODEL_AMBIENT.rgb * albedo.rgb;
+	fixed4 packNormal = tex2D(_Normal, i.normalUV);
+	float3 normal = UnpackNormal(packNormal);
+	float3 lightDir = normalize(i.lightDir);
+	float3 viewDir = normalize(i.viewDir);
+	// Compute diffuse term
+	float3 diffuse = _LightColor0.rgb*albedo.rgb*max(0, dot(normal, i.lightDir));
+	// Get the half direction in world space
+	float3 halfDir = normalize(lightDir + viewDir);
+	// Compute specular term 
+	float3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(normal, halfDir)), _Gloss);
+	return fixed4(ambient + diffuse + specular, 1.0);
+}
 			ENDCG
 		}
 
