@@ -22,7 +22,7 @@ class PostProcess : MonoBehaviour
     void Start()
     {
         camera = GetComponent<Camera>();
-        camera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
+        camera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors | DepthTextureMode.DepthNormals;
         cmd = new CommandBuffer();
         camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
     }

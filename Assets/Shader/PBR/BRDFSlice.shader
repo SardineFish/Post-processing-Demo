@@ -6,6 +6,9 @@ Shader "MyShader/PBR/BRDF Slice"{
 		_F0("F0", Range(0, 1)) = 0.02
 	}
 	SubShader{
+		Tags {
+            "RenderType"="Opaque"
+        }
 		Pass{
 			Tags {"LightMode"="ForwardBase"}
 

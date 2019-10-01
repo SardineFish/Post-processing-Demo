@@ -11,6 +11,9 @@ Shader "MyShader/SimpleLight"
     }
     SubShader
     {
+		Tags {
+            "RenderType"="Opaque"
+        }
 
         Pass
         {

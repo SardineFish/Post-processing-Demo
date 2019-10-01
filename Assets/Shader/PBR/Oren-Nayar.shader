@@ -7,6 +7,9 @@ Shader "MyShader/PBR/Oren-Nayar"{
 		_Roughness("Roughness", Range(0,1.5708)) = 0.5
 	}
 	SubShader{
+		Tags {
+            "RenderType"="Opaque"
+        }
 		Pass{
 			Tags {"LightMode"="ForwardBase"}
 

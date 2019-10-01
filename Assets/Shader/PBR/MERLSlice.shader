@@ -4,6 +4,9 @@ Shader "MyShader/PBR/MERL Slice"{
 		_PhiDiff("Phi Diff", Range(0, 180)) = 90
 	}
 	SubShader{
+		Tags {
+            "RenderType"="Opaque"
+        }
 		Pass{
 			Tags {"LightMode"="ForwardBase"}
 
