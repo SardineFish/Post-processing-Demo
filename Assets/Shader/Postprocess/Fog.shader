@@ -70,7 +70,7 @@
                 
                 float f = (abs(z) - _ViewRange.x) / (_ViewRange.y - _ViewRange.x);
                 f = 1 - exp(-pow(d * abs(z), 1));
-                // f = saturate((2 - worldPos.y) / (2));
+                f = saturate((2 - worldPos.y) / (2));
                 // f = pow(f, 2);
                 //f = 1 - exp(-pow(d * abs(f), 1));
                 // depth = (depth + 1) / 2;

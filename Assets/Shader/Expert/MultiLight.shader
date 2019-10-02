@@ -121,7 +121,7 @@ Shader "MyShader/Expert/MultiLight"{
 				
 				float roughness = _Roughness;
 				float4 albedo = tex2D(_MainTex, i.uv) * _Color;
-				float3 ambient = UNITY_LIGHTMODEL_AMBIENT.rgb * albedo.rgb;
+				float3 ambient = unity_AmbientSky.rgb * albedo.rgb;
 				fixed4 packNormal = tex2D(_Normal, i.uv);
                 // float shadow = SHADOW_ATTENUATION(i);
                 UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos);
