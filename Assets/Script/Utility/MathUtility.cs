@@ -32,7 +32,11 @@ public static class MathUtility
         x = float.IsNaN(x) ? v.x : x;
         y = float.IsNaN(y) ? v.y : y;
         z = float.IsNaN(z) ? v.z : z;
-        return new Vector3(x, y, z);
+        v.x = x;
+        v.y = y;
+        v.z = z;
+        return v;
+        //return new Vector3(x, y, z);
     }
 
     public static Vector2 ToVector2(this Vector3 v)

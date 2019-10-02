@@ -3,8 +3,9 @@ using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
 [ImageEffectAllowedInSceneView]
-class PostProcess : MonoBehaviour
+public class PostProcess : MonoBehaviour
 {
+    public ReflectionProbe ReflectionProbe;
     public PostProcessor[] PostProcessors = new PostProcessor[0];
     Camera camera;
     public float Near;
@@ -54,6 +55,7 @@ class PostProcess : MonoBehaviour
             cmd.Blit(BuiltinRenderTextureType.CameraTarget, screenImage);
 
             cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+            PostProcessors[i].Manager = this;
             PostProcessors[i].Process(cmd, camera, screenImage, BuiltinRenderTextureType.CameraTarget);
         }
 
@@ -64,5 +66,6 @@ class PostProcess : MonoBehaviour
 
 public abstract class PostProcessor : ScriptableObject
 {
+    public PostProcess Manager;
     public abstract void Process(CommandBuffer cmd, Camera camera, RenderTargetIdentifier src, RenderTargetIdentifier dst);
 }
