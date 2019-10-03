@@ -15,6 +15,11 @@ public class PostProcess : MonoBehaviour
 
     CommandBuffer cmd;
 
+    public GameObject ShadowCameraObject;
+    public Camera shadowCamera;
+    public RenderTexture shadowTexture;
+    public Shader ScreenSpaceShadowShader;
+
     private void Reset()
     {
         Near = GetComponent<Camera>().nearClipPlane;
@@ -26,6 +31,38 @@ public class PostProcess : MonoBehaviour
         camera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors | DepthTextureMode.DepthNormals;
         cmd = new CommandBuffer();
         camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
+        InitShadowCamera();
+    }
+
+    void InitShadowCamera()
+    {
+        if (!ShadowCameraObject)
+        {
+            ShadowCameraObject = transform.Find("ShadowCameraObject")?.gameObject;
+            if(!ShadowCameraObject)
+            {
+                ShadowCameraObject = new GameObject("ShadowCameraObject");
+                ShadowCameraObject.transform.parent = transform;
+            }
+            ShadowCameraObject.transform.localPosition = Vector3.zero;
+            ShadowCameraObject.transform.localRotation = Quaternion.identity;
+            ShadowCameraObject.transform.localScale = Vector3.one;
+        }
+
+        camera = GetComponent<Camera>();
+        shadowCamera = ShadowCameraObject.GetComponent<Camera>();
+        if(!shadowCamera)
+            shadowCamera = ShadowCameraObject.AddComponent<Camera>();
+        shadowCamera.CopyFrom(camera);
+        shadowCamera.cullingMask = ~0;
+        shadowCamera.clearFlags = CameraClearFlags.SolidColor;
+        shadowCamera.backgroundColor = Color.white;
+        shadowCamera.enabled = false;
+        shadowTexture = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 512);
+        shadowCamera.targetTexture = shadowTexture;
+        shadowCamera.depthTextureMode = DepthTextureMode.Depth;
+        ScreenSpaceShadowShader = Shader.Find("MyShader/ScreenSpaceShadow");
+        
     }
 
     private void Update()
@@ -39,12 +76,18 @@ public class PostProcess : MonoBehaviour
 
     private void OnPreRender()
     {
+        if (!shadowCamera)
+            InitShadowCamera();
+        shadowCamera.RenderWithShader(ScreenSpaceShadowShader, "");
+
         if(cmd is null)
         {
             cmd = new CommandBuffer();
             camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         }
         cmd.Clear();
+
+        cmd.SetGlobalTexture("_ScreenSpaceShadow", shadowCamera.targetTexture);
 
         var screenImage = Shader.PropertyToID("_ScreenImage");
         cmd.GetTemporaryRT(screenImage, -1, -1, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBFloat);

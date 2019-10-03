@@ -14,7 +14,11 @@ Shader "MyShader/Postprocess/InfiniteGround"
         _F0 ("F0", Range(0, 1)) = 0.16
         _ReflectFog ("Reflect Fog", Color) = (1, 1, 1, 1)
         _RefractFog ("Refract Fog", Color) = (1, 1, 1, 1)
+        _DiffuseColor ("Diffuse Color", Color) = (1, 1, 1, 1)
         _RefractStrength ("Refract Strength", Float) = 1
+        _SubsurfaceDistortion("Subsurface Distortion", Range(0, 1)) = 1
+        _SubsurfaceScale("Subsurface Scale", Range(0, 1)) = 1
+        _SubsurfacePower("Subsurface Power", Float) = 5
 
     }
     SubShader
@@ -29,6 +33,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+			#include "Lighting.cginc"
 
             struct appdata
             {
@@ -55,16 +60,20 @@ Shader "MyShader/Postprocess/InfiniteGround"
             float _WaveStrength;
             float _P;
             float _F0;
-            float4 _WaterColor;
+            float4 _DiffuseColor;
             float4 _ReflectFog;
             float4 _RefractFog;
             float _RefractStrength;
+            float _SubsurfaceDistortion;
+            float _SubsurfacePower;
+            float _SubsurfaceScale;
 
             sampler2D _Texture;
             sampler2D _MainTex;
             half4 _MainTex_TexelSize;
             sampler2D _CameraDepthTexture;
             samplerCUBE _ReflectTex;
+            sampler2D _ScreenSpaceShadow;
 
             v2f vert (appdata v)
             {
@@ -137,6 +146,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     float2 uv = groundPos.xz;
                     float3 normal = waveNormal(uv, length(groundPos - _CameraPos));
                     float3 reflectDir = reflect(ray, normal);
+                    float3 lightDir = normalize(UnityWorldSpaceLightDir(groundPos));
 
                     // Reflection
                     float3 reflection = texCUBElod(_ReflectTex, float4(reflectDir, 0)).rgb;
@@ -148,12 +158,21 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     float f = 1 - exp(-pow(density * abs(depth), 1));
                     float3 color = tex2D(_MainTex, i.uv + normal.xz * _RefractStrength * _MainTex_TexelSize.xy);
                     color = _RefractFog.rgb * f + color * (1 - f);
+                    
+                    // Diffuse
+                    float3 diffuse = _DiffuseColor.rgb * saturate(dot(normal, lightDir)) * _LightColor0.rgb;
+                    // Subsurface 
+                    float3 lightBack = pow(saturate(dot(viewDir, -normalize(lightDir + normal * _SubsurfaceDistortion))), _SubsurfacePower) * _SubsurfaceScale;
+                    lightBack = lightBack * _LightColor0.rgb * _RefractFog.rgb;
+
+                    // Shadow
+                    float shadow = tex2D(_ScreenSpaceShadow, i.uv);
 
                     float fresnel = fresnelFunc(_F0, dot(normal, viewDir), 5);
 
                     uv = uv*_UVScale + _UVOffset.xy;
                     // color = wave(uv); //tex2D(_Texture, uv);
-                    color = reflection * fresnel + (1-fresnel) * (color );
+                    color = reflection * fresnel + (1-fresnel) * ((color) + (lightBack + diffuse) * shadow);
                     return fixed4(color, 1);
                 }
                 else
