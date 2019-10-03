@@ -6,7 +6,9 @@ using UnityEngine.Rendering;
 public class PostProcess : MonoBehaviour
 {
     public ReflectionProbe ReflectionProbe;
+    public GaussianProvider GaussianProvider;
     public PostProcessor[] PostProcessors = new PostProcessor[0];
+
     Camera camera;
     public float Near;
     public float Far;
@@ -30,6 +32,7 @@ public class PostProcess : MonoBehaviour
         camera = GetComponent<Camera>();
         camera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors | DepthTextureMode.DepthNormals;
         cmd = new CommandBuffer();
+        camera.RemoveAllCommandBuffers();
         camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         InitShadowCamera();
     }
