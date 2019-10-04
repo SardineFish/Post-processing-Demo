@@ -85,6 +85,8 @@ public class PostProcess : MonoBehaviour
 
         if(cmd is null)
         {
+            InitShadowCamera();
+            camera.RemoveAllCommandBuffers();
             cmd = new CommandBuffer();
             camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         }

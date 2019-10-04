@@ -1,0 +1,89 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel RandGrid
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float> Result;
+
+RWTexture2D<float2> Grid;
+
+float Seed;
+int ResScale; // Pixels per Grid
+int MinScale; // Min pixels per grid
+float2 Size; // Total Size
+float2 GridSize; // Size of total Grid buffer
+
+#define PHI (1.61803398874989484820459 * 00000.1)
+#define PI (3.14159265358979323846264 * 00000.1)
+#define SQ2 (1.41421356237309504880169 * 10000.0)
+#define BIAS_X (1.31)
+#define BIAS_Y (1.17)
+
+// https://www.shadertoy.com/view/ltB3zD
+inline float gold_noise(float2 pos, float seed)
+{
+    return frac(tan(distance(pos * (PHI + seed), float2(PHI, PI))) * SQ2) * 2 - 1;
+}
+
+[numthreads(8,8,1)]
+void RandGrid (uint3 id : SV_DispatchThreadID)
+{
+    Grid[id.xy] = normalize(float2(
+        gold_noise(id.xy, Seed * BIAS_X) + 0.0000001, // Add a small bias to avoid zero vector.
+        gold_noise(id.xy, Seed + BIAS_Y) + 0.0000001
+    ));
+}
+
+inline uint2 gridAt(uint2 base, uint dx, uint dy, uint gridRes)
+{
+    return uint2((base.x + dx) % int(Size.x / gridRes), (base.y + dy) % int(Size.y / gridRes));
+}
+
+inline float lerpFunc(float t)
+{
+    // 6t^5 - 15t^4 + 10t^3
+    return pow(t, 5) * 6 - pow(t, 4) * 15 + pow(t, 3) * 10;
+}
+
+inline float smoothLerp(float a, float b, float x)
+{
+    float t = lerpFunc(x);
+    return (1-t) * a + t * b;
+}
+
+// https://flafla2.github.io/2014/08/09/perlinnoise.html
+[numthreads(32,32,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int gridRes = ResScale;
+
+    float resultScale = 1;
+
+    while(gridRes >= MinScale)
+    {
+        uint2 base = id.xy / gridRes;
+        uint2 grids[4] = {
+            gridAt(base, 0, 0, gridRes),
+            gridAt(base, 1, 0, gridRes),
+            gridAt(base, 0, 1, gridRes),
+            gridAt(base, 1, 1, gridRes)
+        };
+        float2 pos = frac(float2(id.xy) / gridRes);
+        float value[4] = {
+            dot(normalize(Grid[grids[0].xy]), pos),
+            dot(normalize(Grid[grids[1].xy]), pos - float2(1, 0)),
+            dot(normalize(Grid[grids[2].xy]), pos - float2(0, 1)),
+            dot(normalize(Grid[grids[3].xy]), pos - float2(1, 1))
+        };
+        float x1 = smoothLerp(value[0], value[1], pos.x); 
+        float x2 = smoothLerp(value[2], value[3], pos.x);
+        if(gridRes == ResScale)
+            Result[id.xy] = smoothLerp(x1, x2, pos.y) * resultScale;
+        else
+            Result[id.xy] += smoothLerp(x1, x2, pos.y) * resultScale;
+        gridRes = gridRes >> 1;
+        resultScale /= 2;
+    }
+    Result[id.xy] = Result[id.xy] * 0.5 + 0.5;
+}
