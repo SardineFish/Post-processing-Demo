@@ -2,7 +2,7 @@
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class PerlinNoise: MonoBehaviour, ICustomEditorEX
+public class ContinuousPerlinNoise: MonoBehaviour, ICustomEditorEX
 {
     public RenderTexture TargetTexture;
     public ComputeShader Shader;
@@ -11,7 +11,7 @@ public class PerlinNoise: MonoBehaviour, ICustomEditorEX
     public int GridSize = 64;
     [Delayed]
     public int MinIterateSize = 4;
-    public bool UpdateEveryFrame = false;
+    public float Speed = 0.1f;
     RenderTexture GridBuffer;
     bool inited = false;
     int size;
@@ -65,8 +65,7 @@ public class PerlinNoise: MonoBehaviour, ICustomEditorEX
     }
     private void Update()
     {
-        if (UpdateEveryFrame)
-            UpdateNoise();
+        UpdateNoise();
 
     }
 
@@ -76,7 +75,7 @@ public class PerlinNoise: MonoBehaviour, ICustomEditorEX
             return;
         //  Init();
 
-        Shader.SetFloat("Seed", UnityEngine.Random.value);
+        Shader.SetFloat("Time", Time.time * Speed);
         Shader.Dispatch(gridRenderKernel, gridBufferSize / 8, gridBufferSize / 8, 1);
         Shader.Dispatch(noiseRenderKernel, size / 32, size / 32, 1);
     }
@@ -86,6 +85,6 @@ public class PerlinNoise: MonoBehaviour, ICustomEditorEX
         if (!inited)
             return;
         //GUI.DrawTexture(new Rect(0, 0, 1024, 1024), TargetTexture, ScaleMode.ScaleToFit, false);
-        //GUI.DrawTexture(new Rect(1024, 0, 1024, 1024), GridBuffer, ScaleMode.ScaleToFit, false);
+        //GUI.DrawTexture(new Rect(0, 0, 1024, 1024), GridBuffer, ScaleMode.ScaleToFit, false);
     }
 }

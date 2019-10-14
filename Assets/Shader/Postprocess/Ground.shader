@@ -7,6 +7,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
         _UVOffset ("UV Offset", Vector) = (0,0,0,0)
         _UVScale ("UV Scale", Float) = 1
         _ReflectTex ("Reflection Texture", Cube) = "_Skybox" {}
+        _WaveTexture ("Wave Texture", 2D) = "white" {}
         _WaveScale ("Wave Scale", Float) = 1
         _WaveSpeed ("Wave Speed", Float) = 1
         _WaveStrength ("Wave Strength", Float) = 1
@@ -58,6 +59,8 @@ Shader "MyShader/Postprocess/InfiniteGround"
             float _WaveScale;
             float _WaveSpeed;
             float _WaveStrength;
+            sampler2D _WaveTexture;
+            float4 _WaveTexture_TexelSize;
             float _P;
             float _F0;
             float4 _DiffuseColor;
@@ -104,6 +107,16 @@ Shader "MyShader/Postprocess/InfiniteGround"
 
             inline float3 waveNormal(float2 pos, float dist)
             {
+                pos = pos * _WaveScale + _WaveSpeed * _Time.y * _WaveTexture_TexelSize.xy;
+                float centerHeight = tex2D(_WaveTexture, pos).r;
+                float2 delta = float2(
+                    tex2D(_WaveTexture, pos + float2(_WaveTexture_TexelSize.x, 0)).r - centerHeight,
+                    tex2D(_WaveTexture, pos + float2(0, _WaveTexture_TexelSize.y)).r - centerHeight
+                );
+                delta /= _WaveTexture_TexelSize.xy;
+                delta *= _WaveStrength  * exp(-1 / _P * dist);
+                return normalize(float3(delta.x, 1, delta.y));
+
                 float omega[4] = {37, 17, 23, 16};
                 float phi[4] = {7, 5, 3, 11};
                 float2 dir[4] = {
@@ -151,6 +164,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     // Reflection
                     float3 reflection = texCUBElod(_ReflectTex, float4(reflectDir, 0)).rgb;
                     reflection = _ReflectFog.rgb * _ReflectFog.a + reflection.rgb * (1 - _ReflectFog.a);
+                    // return fixed4(reflection, 1);
 
                     // Refraction
                     float depth = length(worldPos - groundPos);

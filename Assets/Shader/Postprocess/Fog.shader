@@ -4,6 +4,8 @@
     {
         _MainTex ("Texture", 2D) = "white" {}
         _FogColor ("Fog Color", Color) = (1,1,1,1)
+        _ScatterFactor("Scatter Factor", Range(-1, 1)) = 0.3
+        _ScatterStrength("Scatter Strength", Range(0, 1)) = 0.1
     }
     SubShader
     {
@@ -17,6 +19,9 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+			#include "Lighting.cginc"
+
+            #define PI (3.14159265358979323846264338327950288419716939937510)
 
             struct appdata
             {
@@ -36,6 +41,8 @@
             float3 _CameraPos;
             float3 _ViewRange; // (near, far, near - far)
             float3 _CameraClipPlane; // (near, far, near - far)
+            float _ScatterFactor;
+            float _ScatterStrength;
 
             v2f vert (appdata v)
             {
@@ -64,6 +71,11 @@
                 return (_CameraPos + LinearEyeDepth(depth) * ray.xyz);
             }
 
+            inline float phase(float vl)
+            {
+                return 1 / (4*PI) * (1 - pow(_ScatterFactor, 2)) / pow(1 + pow(_ScatterFactor, 2) - 2 * _ScatterFactor * vl, 3/2);
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
                 float d = _Density;
@@ -71,9 +83,11 @@
                 float3 depth = tex2D(_CameraDepthTexture, i.uv).rgb;
                 float3 worldPos = getWorldPos(depth.r, i.ray);
                 float3 ray = worldPos - _CameraPos;
+                float3 viewDir = normalize(-ray);
+                float3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
                 float t = (0 - _CameraPos.y) / ray.y;
                 if(0 < t && t < 1)
-                    return fixed4(color, 1);
+                    worldPos = _CameraPos + ray * t;
                 //return worldPos.y - 1;
                 fixed4 col = fixed4(color, 1);
                 fixed4 fog = fixed4(1,1,1,1);
@@ -92,7 +106,11 @@
                 // just invert the colors
                 // col.rgb = 1 - col.rgb;
                 f *= _Scale;
-                return fixed4 (FOG(_FogColor, color, f), 1);
+                color = FOG(_FogColor, color, f);
+                float3 scatterLight = _LightColor0.rgb * phase(dot(lightDir, viewDir));
+                scatterLight = FOG(scatterLight, float3(0,0,0), f);
+                scatterLight = scatterLight * _ScatterStrength;
+                return fixed4 (color + scatterLight, 1);
             }
             ENDCG
         }
