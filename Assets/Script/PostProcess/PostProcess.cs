@@ -2,11 +2,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-[ImageEffectAllowedInSceneView]
+//[ImageEffectAllowedInSceneView]
 public class PostProcess : MonoBehaviour
 {
     public ReflectionProbe ReflectionProbe;
     public GaussianProvider GaussianProvider;
+    public Light MainLight;
     public PostProcessor[] PostProcessors = new PostProcessor[0];
 
     Camera camera;
@@ -35,6 +36,7 @@ public class PostProcess : MonoBehaviour
         camera.RemoveAllCommandBuffers();
         camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         InitShadowCamera();
+        PostProcessors.ForEach(p => p.Init(camera));
     }
 
     void InitShadowCamera()
@@ -110,10 +112,18 @@ public class PostProcess : MonoBehaviour
         cmd.ReleaseTemporaryRT(screenImage);
 
     }
+
+    private void OnDrawGizmos()
+    {
+        PostProcessors.ForEach(p => p.OnDrawGizmos());
+    }
 }
 
 public abstract class PostProcessor : ScriptableObject
 {
     public PostProcess Manager;
     public abstract void Process(CommandBuffer cmd, Camera camera, RenderTargetIdentifier src, RenderTargetIdentifier dst);
+
+    public virtual void Init(Camera camera) { }
+    public virtual void OnDrawGizmos() { }
 }

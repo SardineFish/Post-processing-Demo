@@ -110,7 +110,7 @@
                 float3 scatterLight = _LightColor0.rgb * phase(dot(lightDir, viewDir));
                 scatterLight = FOG(scatterLight, float3(0,0,0), f);
                 scatterLight = scatterLight * _ScatterStrength;
-                return fixed4 (color + scatterLight, 1);
+                return fixed4 (color, 1);
             }
             ENDCG
         }
