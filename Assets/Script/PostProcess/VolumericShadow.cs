@@ -49,6 +49,8 @@ public class VolumericShadow : PostProcessor
 
     public override void Process(CommandBuffer cmd, Camera camera, RenderTargetIdentifier src, RenderTargetIdentifier dst)
     {
+        bool inVolume = Physics.Raycast(new Ray(camera.transform.position, -Manager.MainLight.transform.forward), VolumeStretchDistance);
+
         var mat = new Material(Shader.Find("MyShader/Postprocess/Volumeric"));
         var volumMap = Shader.PropertyToID("_VolumericLightMap");
         var volumBackMap = Shader.PropertyToID("_VolumericBackMap");
@@ -69,19 +71,27 @@ public class VolumericShadow : PostProcessor
 
         cmd.SetRenderTarget(volumMap, volumMap);
         cmd.ClearRenderTarget(true, true, Color.blue);
-        cmd.SetRenderTarget(volumBackMap, volumBackMap);
-        cmd.ClearRenderTarget(true, true, Color.black);
+        //cmd.SetRenderTarget(volumBackMap, volumBackMap);
+        //cmd.ClearRenderTarget(true, true, Color.black);
+        cmd.SetRenderTarget(new RenderTargetIdentifier[] { volumMap, volumDepth }, volumMap);
 
         // Render Volumes
         volumeMeshs
             .Where(pair => (pair.Key.position - camera.transform.position).magnitude < MaxVolumeRenderDistance)
             .ForEach(pair =>
             {
-                cmd.SetRenderTarget(new RenderTargetIdentifier[] { volumMap, volumDepth }, volumMap);
-                cmd.DrawMesh(pair.Value, Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one), mat, 0, 0);
+                if(inVolume)
+                {
+                    // cmd.SetRenderTarget(volumBackMap, volumBackMap);
+                    cmd.DrawMesh(pair.Value, Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one), mat, 0, 1);
+                }
+                else
+                {
+                    // cmd.SetRenderTarget(new RenderTargetIdentifier[] { volumMap, volumDepth }, volumMap);
+                    cmd.DrawMesh(pair.Value, Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one), mat, 0, 0);
+                }
 
-                cmd.SetRenderTarget(volumBackMap, volumBackMap);
-                cmd.DrawMesh(pair.Value, Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one), mat, 0, 1);
+
             });
 
         /*

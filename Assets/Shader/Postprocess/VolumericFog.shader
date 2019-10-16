@@ -73,7 +73,7 @@ Shader "MyShader/Postprocess/Volumeric"{
 			ENDCG
 		}
 
-        // #1 Back rendering
+        // #1 Back only rendering
         Pass {
             ZWrite On
             Blend One Zero
@@ -96,14 +96,19 @@ Shader "MyShader/Postprocess/Volumeric"{
 			struct a2v{
 				float4 vertex: POSITION;
                 float3 normal: NORMAL;
-
+                float3 color: COLOR;
 			};
 			struct v2f {
 				float4 pos:SV_POSITION;
+                float3 color: COLOR;
                 float3 normal: NORMAL;
                 float3 worldPos: TEXCOORD0;
                 float3 screenPos : TEXCOORD1;
 			};
+            struct FragmentOutput {
+                fixed4 dest0 : SV_TARGET0;
+                float dest1 : SV_TARGET1;
+            };
 
 			v2f vert(a2v v) {
 				v2f o;
@@ -111,15 +116,21 @@ Shader "MyShader/Postprocess/Volumeric"{
                 o.worldPos = mul(unity_ObjectToWorld, v.vertex);
                 o.normal = v.normal;
                 o.screenPos = ComputeScreenPos(o.pos);
+                o.color = v.color;
 				return o;
 			}
 
-			fixed4 frag(v2f i) : SV_TARGET
+			FragmentOutput frag(v2f i) : SV_TARGET
             {
-                float3 color = 1;
+                FragmentOutput output;
+                float3 color = i.color;
                 float3 normal = normalize(i.normal);
                 float3 viewDir = normalize(_CameraPos - i.worldPos);
-				return i.pos.z;
+                float n = step(0, dot(viewDir, normal));
+
+                output.dest0 = fixed4(1, 0, 0, 1);
+                output.dest1 = i.pos.z;
+				return output;
 			}
 
 			ENDCG
@@ -254,6 +265,7 @@ Shader "MyShader/Postprocess/Volumeric"{
                 if(distance(_CameraPos, worldPos) < distance(_CameraPos, volumePos))
                     volumePos = worldPos;
 
+                
                 float z = saturate((length(volumePos - _CameraPos) - _ViewRange.x) / _ViewRange.z);
                 float f = (abs(z) - _ViewRange.x) / (_ViewRange.y - _ViewRange.x);
                 f = 1 - exp(-pow(d * abs(z), 1));
