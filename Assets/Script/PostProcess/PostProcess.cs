@@ -93,6 +93,7 @@ public class PostProcess : MonoBehaviour
             camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         }
         cmd.Clear();
+        cmd.BeginSample("Post Process");
 
         cmd.SetGlobalTexture("_ScreenSpaceShadow", shadowCamera.targetTexture);
 
@@ -110,6 +111,7 @@ public class PostProcess : MonoBehaviour
         }
 
         cmd.ReleaseTemporaryRT(screenImage);
+        cmd.EndSample("Post Process");
 
     }
 

@@ -6,7 +6,7 @@ using System;
 
 namespace Assets.Editor
 {
-    [ScriptedImporter(5, "gauss")]
+    [ScriptedImporter(8, "gauss")]
     class GaussianImporter : ScriptedImporter
     {
 
@@ -28,8 +28,11 @@ namespace Assets.Editor
                 }
                 texture.filterMode = FilterMode.Point;
                 texture.wrapMode = TextureWrapMode.Clamp;
+                var asset = GaussianProvider.CreateInstance<GaussianProvider>();
+                asset.GaussianTex = texture;
+                ctx.AddObjectToAsset("GaussianProvider", asset);
                 ctx.AddObjectToAsset("Texture2D", texture);
-                ctx.SetMainObject(texture);
+                ctx.SetMainObject(asset);
             }
         }
     }

@@ -225,6 +225,7 @@ public class VolumericShadow : PostProcessor
 
     public override void OnDrawGizmos()
     {
+        return;
         volumeMeshs.ForEach(pair =>
         {
             var mesh = pair.Value;
