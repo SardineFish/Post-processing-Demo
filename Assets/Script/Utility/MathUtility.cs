@@ -39,6 +39,11 @@ public static class MathUtility
         //return new Vector3(x, y, z);
     }
 
+    public static Vector3 Reflect(Vector3 viewDir, Vector3 normal)
+    {
+        return -viewDir + 2* Vector3.Dot(viewDir, normal) * normal;
+    }
+
     public static Vector2 ToVector2(this Vector3 v)
     {
         return new Vector2(v.x, v.y);

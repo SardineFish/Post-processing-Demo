@@ -47,6 +47,9 @@ Shader "MyShader/Postprocess/SSAO"
             float _Radius;
             float _DepthThreshold;
             float _OcclusionDepth;
+            float4 _FOV; // (degree, rad, tan, 1/tan)
+            float4 _CameraClipPlane;
+            float2 _ScreenPlaneSize;
 
             
             sampler2D _MainTex;
@@ -54,7 +57,6 @@ Shader "MyShader/Postprocess/SSAO"
             sampler2D _CameraDepthNormalsTexture;
             half4 _CameraDepthNormalsTexture_TexelSize;
             sampler2D _CameraDepthTexture;
-            float4 _CameraClipPlane;
 
             inline float gold_noise(float2 pos, float seed)
             {
@@ -74,20 +76,19 @@ Shader "MyShader/Postprocess/SSAO"
                 
                 float3 tangent = float3(delta.xy, -dot(centerNormal.xy, delta.xy)/centerNormal.z);
                 tangent = normalize(tangent);
-                float2 sampleUV = uv + delta * _Radius * _CameraDepthNormalsTexture_TexelSize.xy;
+                float2 sampleUV = uv + delta;
                 float3 sampleNormal;
                 float sampleDepth;
                 DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, sampleUV.xy), sampleDepth, sampleNormal);
                 sampleDepth = _CameraClipPlane.x + sampleDepth * _CameraClipPlane.z;
                 sampleNormal = normalize(sampleNormal);
 
+                if(dot(centerNormal, sampleNormal) > 0.9)
+                    return 0;
                 if(centerDepth - sampleDepth > _DepthThreshold)
                     return 0;
                 if(sampleDepth - centerDepth > _OcclusionDepth)
                     return 0;
-                if(dot(centerNormal, sampleNormal) > 0.9)
-                    return 0;
-
                 float2 n = normalize(float2(dot(sampleNormal, tangent), dot(sampleNormal, centerNormal)));
 
                 
@@ -98,7 +99,7 @@ Shader "MyShader/Postprocess/SSAO"
                 return 0;
             }
 
-            #define SAMPLE_N 64
+            #define SAMPLE_N 16
 
             inline float AO(float2 uv)
             {
@@ -109,11 +110,13 @@ Shader "MyShader/Postprocess/SSAO"
                 centerDepth = _CameraClipPlane.x + centerDepth * _CameraClipPlane.z;
                 //centerDepth = Linear01Depth(centerDepth);
                 float occlusion = 0;
-
+                float2 radius = _Radius / centerDepth * _CameraClipPlane.x / _ScreenPlaneSize.xy;
+                //return radius / _CameraDepthNormalsTexture_TexelSize.w;
                 for(int i=0; i< SAMPLE_N; i++)
                 {
                     float2 delta = normalize(float2(gold_noise(uv.xy, 271 + i * 139), gold_noise(uv.yx, 237 + i * 127)));
                     delta *= pow(abs(gold_noise(uv.yx, 311 + 0 * 133)), 3);
+                    delta *= radius;
                     occlusion += calculateOcclusionAt(uv, delta, centerNormal, centerDepth);
                 }
                 return occlusion / SAMPLE_N;
