@@ -19,6 +19,7 @@ public class VolumericShadow : PostProcessor
     [Range(0, 1)]
     public float Density = 0.5f;
     public float FogScale = 1f;
+    public bool EnableVolume;
     Collider[] shadowTargets;
     Mesh boxMeshBase;
     Mesh boxMesh;
@@ -75,12 +76,14 @@ public class VolumericShadow : PostProcessor
         //cmd.ClearRenderTarget(true, true, Color.black);
         cmd.SetRenderTarget(new RenderTargetIdentifier[] { volumMap, volumDepth }, volumMap);
 
-        // Render Volumes
-        volumeMeshs
+        if (EnableVolume)
+        {
+            // Render Volumes
+            volumeMeshs
             .Where(pair => (pair.Key.position - camera.transform.position).magnitude < MaxVolumeRenderDistance)
             .ForEach(pair =>
             {
-                if(inVolume)
+                if (inVolume)
                 {
                     // cmd.SetRenderTarget(volumBackMap, volumBackMap);
                     cmd.DrawMesh(pair.Value, Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one), mat, 0, 1);
@@ -93,6 +96,8 @@ public class VolumericShadow : PostProcessor
 
 
             });
+        }
+            
 
         /*
         var count = Physics.OverlapSphereNonAlloc(camera.transform.position, ShadowDistance, shadowTargets);

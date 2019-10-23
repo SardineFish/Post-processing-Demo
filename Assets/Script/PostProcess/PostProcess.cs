@@ -28,6 +28,7 @@ public class PostProcess : MonoBehaviour
         Near = GetComponent<Camera>().nearClipPlane;
         Far = GetComponent<Camera>().farClipPlane;
     }
+    [EditorButton("Reload")]
     void Start()
     {
         camera = GetComponent<Camera>();

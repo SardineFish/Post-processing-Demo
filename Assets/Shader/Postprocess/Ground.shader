@@ -10,6 +10,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
         _WaveScale ("Wave Scale", Float) = 1
         _WaveSpeed ("Wave Speed", Float) = 1
         _WaveStrength ("Wave Strength", Float) = 1
+        _WaveAtten("Wave Attenuation", Float) = 2.3
         _NoiseTex ("Wave Noise", 2D) = "white" {}
         _NoiseScale ("Noise Scale", Float) = 0.05
         _NoiseStrength ("Noise Strength", Float) = 0.0004
@@ -61,6 +62,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
             float _WaveScale;
             float _WaveSpeed;
             float _WaveStrength;
+            float _WaveAtten;
             sampler2D _NoiseTex;
             float4 _NoiseTex_TexelSize;
             float _NoiseScale;
@@ -140,8 +142,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                         omega[i] * dir[i].y * 1 * cos(dot(dir[i], pos) * omega[i] + t * phi[i])
                     );
                 }
-                normal.xz = normal.xz * _WaveStrength * exp(-1 / _P * dist);
-
+                normal.xz = normal.xz * _WaveStrength * exp(-1 / _WaveAtten * dist);
                 
                 pos = pos * _NoiseScale + _WaveSpeed * _Time.y * _NoiseTex_TexelSize.xy;
                 float centerHeight = tex2D(_NoiseTex, pos).r;
@@ -150,7 +151,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     tex2D(_NoiseTex, pos + float2(0, _NoiseTex_TexelSize.y)).r - centerHeight
                 );
                 delta /= _NoiseTex_TexelSize.xy;
-                delta *= _NoiseStrength  * exp(-1 / _P * dist);
+                delta *= _NoiseStrength  * exp(-1 / _WaveAtten * dist);
                 normal.xz += delta.xy;
                 return normalize(normal);
             }
@@ -187,6 +188,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     float f = 1 - exp(-pow(density * abs(depth), 1));
                     float3 color = tex2D(_MainTex, i.uv + normal.xz * _RefractStrength * _MainTex_TexelSize.xy);
                     color = _RefractFog.rgb * f + color * (1 - f);
+                
                     
                     // Diffuse
                     float3 diffuse = _DiffuseColor.rgb * saturate(dot(normal, lightDir)) * _LightColor0.rgb;
@@ -197,7 +199,7 @@ Shader "MyShader/Postprocess/InfiniteGround"
                     // Shadow
                     float shadow = tex2D(_ScreenSpaceShadow, i.uv);
 
-                    float fresnel = saturate(fresnelFunc(_F0, dot(normal, viewDir), 5));
+                    float fresnel = saturate(fresnelFunc(_F0, dot(normal, viewDir), _P));
 
                     uv = uv*_UVScale + _UVOffset.xy;
                     // color = wave(uv); //tex2D(_Texture, uv);

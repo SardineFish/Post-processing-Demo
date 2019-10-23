@@ -16,8 +16,9 @@ public class Fog : PostProcessor
     {
         cmd.SetGlobalMatrix("_ViewProjectionInverseMatrix", (camera.projectionMatrix * camera.worldToCameraMatrix).inverse * Matrix4x4.Scale(new Vector3 (1, -1, 1)));
         cmd.SetGlobalVector("_CameraPos", camera.transform.position);
-        cmd.SetGlobalVector("_ViewRange", new Vector3(Near, Far, Far - Near));
         cmd.SetGlobalVector("_CameraClipPlane", new Vector3(camera.nearClipPlane, camera.farClipPlane, camera.farClipPlane - camera.nearClipPlane));
+
+        cmd.SetGlobalVector("_ViewRange", new Vector3(Near, Far, Far - Near));
         cmd.SetGlobalFloat("_Density", 1 / (1 - Mathf.Pow(Density, .5f) + 0.000001f));
         cmd.SetGlobalFloat("_Scale", Scale);
 

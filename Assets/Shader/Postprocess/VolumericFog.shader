@@ -252,7 +252,7 @@ Shader "MyShader/Postprocess/Volumeric"{
                 float3 color = 1 * tex2D(_MainTex, i.uv).rgb;
                 float depth = tex2D(_CameraDepthTexture, i.uv).r;
                 float3 volumeMask = tex2D(_VolumericLightMap, i.uv);
-                float volumeDepth = tex2D(_VolumericDepthMap, i.uv);
+                float volumeDepth = tex2D(_VolumericDepthMap, i.uv).r;
 
                 float3 volumePos = getWorldPos(volumeDepth, i.ray);
                 float3 worldPos = getWorldPos(depth, i.ray);
@@ -261,9 +261,16 @@ Shader "MyShader/Postprocess/Volumeric"{
                 float3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
                 float t = (0 - _CameraPos.y) / ray.y;
                 if(0 < t && t < 1)
-                    worldPos = _CameraPos + ray * t;
+                {
+                    float3 waterPos = _CameraPos + ray * t;
+                    if(distance(_CameraPos, waterPos) < distance(_CameraPos, worldPos))
+                        worldPos = waterPos;
+                }
                 if(distance(_CameraPos, worldPos) < distance(_CameraPos, volumePos))
+                {
                     volumePos = worldPos;
+                    volumeMask = float3(0,0,1);
+                }
 
                 
                 float z = saturate((length(volumePos - _CameraPos) - _ViewRange.x) / _ViewRange.z);
