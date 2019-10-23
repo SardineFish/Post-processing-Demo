@@ -8,7 +8,7 @@ Implement by extending Unity Built-in Render Pipeline with Command Buffer.
 
 ## Implemented Post-processings
 - Fog.
-- Infinite water reflection.
+- Infinite water reflection. (See [https://www.sardinefish.com/blog/?pid=342](https://www.sardinefish.com/blog/?pid=342))
 - Atmosphic scattering.
 - Volumeric shadow.
 - Screen Space Ambient Occlusion.
