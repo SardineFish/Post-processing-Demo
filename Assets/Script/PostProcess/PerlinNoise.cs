@@ -51,17 +51,17 @@ public class PerlinNoise: MonoBehaviour, ICustomEditorEX
             TargetTexture.Create();
 
         Shader.SetFloat("Seed", UnityEngine.Random.value);
-        Shader.SetInt("ResScale", GridSize);
-        Shader.SetInt("MinScale", MinIterateSize);
+        Shader.SetInt("GridSize", GridSize);
+        Shader.SetInt("MinIterateSize", MinIterateSize);
         Shader.SetVector("Size", new Vector2(TargetTexture.width, TargetTexture.height));
-        Shader.SetVector("GridSize", new Vector2(gridBufferSize, gridBufferSize));
+        //Shader.SetVector("GridSize", new Vector2(gridBufferSize, gridBufferSize));
 
         gridRenderKernel = Shader.FindKernel("RandGrid");
-        noiseRenderKernel = Shader.FindKernel("CSMain");
+        noiseRenderKernel = Shader.FindKernel("RenderNoise");
 
         Shader.SetTexture(gridRenderKernel, "Grid", GridBuffer);
         Shader.SetTexture(noiseRenderKernel, "Grid", GridBuffer);
-        Shader.SetTexture(noiseRenderKernel, "Result", TargetTexture);
+        Shader.SetTexture(noiseRenderKernel, "NoiseTextureOutput", TargetTexture);
     }
     private void Update()
     {

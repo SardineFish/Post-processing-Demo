@@ -1,18 +1,14 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+﻿#pragma kernel RenderNoise
 #pragma kernel RandGrid
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float> Result;
 
 RWTexture2D<float2> Grid;
+RWTexture2D<float> NoiseTextureOutput;
 
 float Seed;
-int ResScale; // Pixels per Grid
-int MinScale; // Min pixels per grid
-float2 Size; // Total Size
-float2 GridSize; // Size of total Grid buffer
+int GridSize; // Pixels per Grid
+int MinIterateSize; // Min pixels per grid
+float2 Size; // Size of output texture
 
 #define PHI (1.61803398874989484820459 * 00000.1)
 #define PI (3.14159265358979323846264 * 00000.1)
@@ -30,8 +26,8 @@ inline float gold_noise(float2 pos, float seed)
 void RandGrid (uint3 id : SV_DispatchThreadID)
 {
     Grid[id.xy] = normalize(float2(
-        gold_noise(id.xy, Seed * BIAS_X) + 0.0000001, // Add a small bias to avoid zero vector.
-        gold_noise(id.xy, Seed + BIAS_Y) + 0.0000001
+        gold_noise(id.xy, Seed * BIAS_X) + 0.00001, // Add a small bias to avoid zero vector.
+        gold_noise(id.xy, Seed + BIAS_Y) + 0.00001
     ));
 }
 
@@ -54,13 +50,13 @@ inline float smoothLerp(float a, float b, float x)
 
 // https://flafla2.github.io/2014/08/09/perlinnoise.html
 [numthreads(32,32,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void RenderNoise (uint3 id : SV_DispatchThreadID)
 {
-    int gridRes = ResScale;
+    int gridRes = GridSize;
 
-    float resultScale = 1;
+    float NoiseTextureOutputScale = 1;
 
-    while(gridRes >= MinScale)
+    while(gridRes >= MinIterateSize)
     {
         uint2 base = id.xy / gridRes;
         uint2 grids[4] = {
@@ -78,12 +74,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         };
         float x1 = smoothLerp(value[0], value[1], pos.x); 
         float x2 = smoothLerp(value[2], value[3], pos.x);
-        if(gridRes == ResScale)
-            Result[id.xy] = smoothLerp(x1, x2, pos.y) * resultScale;
+        if(gridRes == GridSize)
+            NoiseTextureOutput[id.xy] = smoothLerp(x1, x2, pos.y) * NoiseTextureOutputScale;
         else
-            Result[id.xy] += smoothLerp(x1, x2, pos.y) * resultScale;
+            NoiseTextureOutput[id.xy] += smoothLerp(x1, x2, pos.y) * NoiseTextureOutputScale;
         gridRes = gridRes >> 1;
-        resultScale /= 2;
+        NoiseTextureOutputScale /= 2;
     }
-    Result[id.xy] = Result[id.xy] * 0.5 + 0.5;
+    NoiseTextureOutput[id.xy] = NoiseTextureOutput[id.xy] * 0.5 + 0.5;
 }

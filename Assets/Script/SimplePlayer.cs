@@ -84,8 +84,6 @@ public class SimplePlayer : MonoBehaviour {
                 var v = jumpDir * WallJumpVelocity.x;
                 v.y = WallJumpVelocity.y;
                 velocity = v.ToVector2XZ();
-                Debug.Log(v);
-                Debug.Log("juuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuump");
                 GetComponent<Rigidbody>().velocity = velocity.ToVector3XZ(WallJumpVelocity.y);
             }
         }
