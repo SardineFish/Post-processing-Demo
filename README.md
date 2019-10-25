@@ -6,6 +6,10 @@ Develop with Unity 2019.2.6f1
 
 Implement by extending Unity Built-in Render Pipeline with Command Buffer.
 
+Post-processing demo in `Assets/Scenes/Postprocess`
+
+Procedual demo in `Assets/Scenes/PerlinNoise`
+
 ## Implemented Post-processings
 - Fog.
 - Infinite water reflection. (See [https://www.sardinefish.com/blog/?pid=342](https://www.sardinefish.com/blog/?pid=342))
