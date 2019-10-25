@@ -36,3 +36,8 @@ public class ReadOnlyAttribute : CustomEditorAttribute
         Label = label;
     }
 }
+
+public interface INotifyOnReload
+{
+    void OnReload();
+}

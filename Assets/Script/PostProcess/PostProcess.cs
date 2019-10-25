@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
 //[ImageEffectAllowedInSceneView]
-public class PostProcess : MonoBehaviour
+public class PostProcess : MonoBehaviour,INotifyOnReload
 {
     public ReflectionProbe ReflectionProbe;
     public GaussianProvider GaussianProvider;
@@ -23,6 +23,11 @@ public class PostProcess : MonoBehaviour
     public RenderTexture shadowTexture;
     public Shader ScreenSpaceShadowShader;
 
+    public void OnReload()
+    {
+        Start();
+    }
+
     private void Reset()
     {
         Near = GetComponent<Camera>().nearClipPlane;
@@ -34,7 +39,7 @@ public class PostProcess : MonoBehaviour
         camera = GetComponent<Camera>();
         camera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors | DepthTextureMode.DepthNormals;
         cmd = new CommandBuffer();
-        camera.RemoveAllCommandBuffers();
+        cmd.name = "Post-processing";
         camera.AddCommandBuffer(CameraEvent.BeforeImageEffects, cmd);
         InitShadowCamera();
         PostProcessors.ForEach(p => p.Init(camera));

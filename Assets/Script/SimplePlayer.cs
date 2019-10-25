@@ -35,12 +35,8 @@ public class SimplePlayer : MonoBehaviour {
     {
     }
 
-    Queue<float> dts = new Queue<float>();
     // Update is called once per frame
     void Update () {
-        if (dts.Count > 30)
-            dts.Dequeue();
-        dts.Enqueue(Time.deltaTime);
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -91,8 +87,6 @@ public class SimplePlayer : MonoBehaviour {
 
     private void OnGUI()
     {
-        GUI.contentColor = Color.red;
-        GUI.Label(new Rect(new Vector2(0, 0), new Vector2(1024, 1024)), (1 / (dts.Sum() / dts.Count)).ToString());
     }
 
 
